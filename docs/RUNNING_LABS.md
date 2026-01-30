@@ -1,22 +1,39 @@
 # Running MongoDB Teaching Labs
 
-This guide explains how to run MongoDB teaching labs using the unified lab runner CLI tool.
+This guide explains how to run MongoDB teaching labs using Docker and the unified lab runner CLI tool.
 
 ## Table of Contents
 
 1. [Quick Start](#quick-start)
-2. [Prerequisites](#prerequisites)
-3. [Using the Lab Runner](#using-the-lab-runner)
-4. [Environment Configuration](#environment-configuration)
-5. [Command Reference](#command-reference)
-6. [Troubleshooting](#troubleshooting)
-7. [Manual Execution](#manual-execution)
+2. [Docker Setup](#docker-setup)
+3. [Prerequisites](#prerequisites)
+4. [Using the Lab Runner](#using-the-lab-runner)
+5. [Environment Configuration](#environment-configuration)
+6. [Command Reference](#command-reference)
+7. [Troubleshooting](#troubleshooting)
+8. [Manual Execution](#manual-execution)
 
 ---
 
 ## Quick Start
 
-The fastest way to run a complete lab:
+The fastest way to run a complete lab with Docker:
+
+```bash
+# 1. Start MongoDB with Docker
+docker-compose up -d
+
+# 2. Wait for MongoDB to be ready
+python scripts/wait_for_mongo.py --docker
+
+# 3. Run everything for a lab (setup → seed → simulate → queries)
+python scripts/lab.py all iot_flood_demo
+
+# 4. Stop MongoDB when done
+docker-compose down
+```
+
+Without Docker (using local MongoDB):
 
 ```bash
 # Run everything for a lab (setup → seed → simulate → queries)
@@ -31,12 +48,109 @@ python scripts/lab.py all ecommerce-orders --clean --hours 48
 
 ---
 
+## Docker Setup
+
+### Unified Docker Architecture
+
+The repository uses a **single root docker-compose.yml** that provides a shared MongoDB instance for all labs:
+
+```
+┌─────────────────────────────────────┐
+│         Root docker-compose.yml      │
+│  - Single MongoDB instance (7.0)     │
+│  - Shared across all labs            │
+│  - Persistent volumes                │
+│  - Health checks                     │
+└─────────────────────────────────────┘
+                    │
+                    ▼
+        ┌───────────────────┐
+        │   MongoDB:27017    │
+        │   - Auth enabled   │
+        │   - Named volumes  │
+        └───────────────────┘
+                    │
+        ┌──────────┴──────────┐
+        ▼                     ▼
+    Lab Scripts          Direct Connection
+    (Python/JS)          (mongosh/Compass)
+```
+
+### Starting MongoDB with Docker
+
+```bash
+# Start MongoDB container
+docker-compose up -d
+
+# Verify it's running and healthy
+docker ps
+
+# Wait for MongoDB to be ready
+python scripts/wait_for_mongo.py --docker
+
+# Optional: Start with MongoDB Express GUI
+docker-compose --profile with-gui up -d
+# Access GUI at: http://localhost:8081 (admin/admin123)
+```
+
+### Docker Connection Details
+
+| Parameter | Value |
+|-----------|-------|
+| Host | localhost |
+| Port | 27017 |
+| Admin User | admin |
+| Admin Password | adminpassword |
+| Lab User | labuser |
+| Lab Password | labpassword |
+| Connection String | `mongodb://labuser:labpassword@localhost:27017/` |
+
+### Wait for MongoDB Script
+
+The `scripts/wait_for_mongo.py` ensures MongoDB is ready:
+
+```bash
+# Basic usage (auto-detects Docker or local)
+python scripts/wait_for_mongo.py
+
+# Explicitly use Docker MongoDB with auto-start
+python scripts/wait_for_mongo.py --docker --auto-start
+
+# Custom timeout (seconds)
+python scripts/wait_for_mongo.py --timeout 60
+
+# Quiet mode
+python scripts/wait_for_mongo.py --quiet
+```
+
+### Stopping Docker
+
+```bash
+# Stop containers (preserves data)
+docker-compose stop
+
+# Stop and remove containers (preserves data)
+docker-compose down
+
+# Complete cleanup (removes data!)
+docker-compose down -v
+```
+
+---
+
 ## Prerequisites
 
 ### Required Software
 
-1. **MongoDB 6.0+** (7.0+ recommended)
-   - Local installation or Docker container
+1. **Docker & Docker Compose** (Recommended)
+   - Provides consistent MongoDB 7.0 environment
+   - No local MongoDB installation needed
+   - Download: https://www.docker.com/products/docker-desktop/
+
+   OR
+
+   **MongoDB 6.0+** (Alternative)
+   - Local installation if Docker not available
    - Running on default port 27017 or custom
 
 2. **MongoDB Shell (mongosh)**
@@ -54,19 +168,23 @@ python scripts/lab.py all ecommerce-orders --clean --hours 48
 
 ### Optional Software
 
-- **Docker & Docker Compose** - For containerized MongoDB
 - **Git** - For cloning the repository
+- **MongoDB Compass** - GUI for database inspection
 
 ---
 
 ## Using the Lab Runner
 
-The `lab.py` script provides a unified interface for managing all labs.
+The `lab.py` script provides a unified interface for managing all labs and integrates with Docker.
 
 ### Basic Usage
 
 ```bash
-python scripts/lab.py <command> <lab-name> [options]
+# With Docker (auto-starts if needed)
+python scripts/lab.py <command> <lab-name> --docker
+
+# With local MongoDB
+python scripts/lab.py <command> <lab-name>
 ```
 
 ### Available Commands
@@ -290,15 +408,15 @@ sudo apt-get install mongodb-mongosh
 
 **Solution**:
 ```bash
-# Start MongoDB locally
+# Preferred: Use root docker-compose
+docker-compose up -d
+python scripts/wait_for_mongo.py --docker
+
+# Or start MongoDB locally
 mongod
 
-# Or with Docker
+# Or with standalone Docker
 docker run -d -p 27017:27017 mongo:7
-
-# Or with docker-compose (if lab provides it)
-cd labs/<lab-name>
-docker compose up -d
 ```
 
 #### 3. ModuleNotFoundError: No module named 'pymongo'
@@ -349,6 +467,54 @@ python scripts/lab.py simulate <lab-name> --hours 1
 python labs/<lab-name>/02_simulate_*.py --hours 24
 ```
 
+#### 7. Docker: Port already in use
+
+**Problem**: `bind: address already in use`
+
+**Solution**:
+```bash
+# Option A: Stop conflicting service
+# Windows
+net stop MongoDB
+# Linux/Mac
+sudo systemctl stop mongod
+
+# Option B: Use docker-compose.override.yml
+echo "version: '3.8'
+services:
+  mongodb:
+    ports:
+      - '27018:27017'" > docker-compose.override.yml
+```
+
+#### 8. Docker: Container unhealthy
+
+**Problem**: MongoDB container fails health checks.
+
+**Solution**:
+```bash
+# Check logs
+docker logs mongodb-labs
+
+# Restart container
+docker-compose restart mongodb
+
+# Full reset if needed
+docker-compose down -v
+docker-compose up -d
+```
+
+#### 9. Docker: Authentication failed
+
+**Problem**: Cannot connect to Docker MongoDB.
+
+**Solution**:
+```bash
+# Use correct credentials (from docker-compose.yml)
+export MONGO_URI=mongodb://labuser:labpassword@localhost:27017/
+python scripts/lab.py all <lab-name>
+```
+
 ### Debug Mode
 
 For more verbose output, check the actual command output:
@@ -368,12 +534,33 @@ python labs/iot_flood_demo/01_seed_flood_project.py --host localhost --port 2701
 
 If you prefer to run scripts manually without the CLI tool:
 
-### Option 1: Using Shell Scripts
+### Option 1: Using Root Docker Compose (Recommended)
+
+```bash
+# Start MongoDB from root
+docker-compose up -d
+python scripts/wait_for_mongo.py --docker
+
+# Navigate to lab
+cd labs/iot_flood_demo
+
+# Run scripts with Docker MongoDB credentials
+mongosh mongodb://labuser:labpassword@localhost:27017/ 00_setup_mongodb.js
+python 01_seed_flood_project.py
+python 02_simulate_flood_project.py --hours 24
+mongosh mongodb://labuser:labpassword@localhost:27017/ 03_queries_exam.js
+
+# Clean up when done
+cd ../..
+docker-compose down
+```
+
+### Option 2: Using Local MongoDB
 
 ```bash
 cd labs/iot_flood_demo
 
-# Setup
+# Setup (assumes local MongoDB without auth)
 mongosh 00_setup_mongodb.js
 
 # Seed
@@ -384,24 +571,6 @@ python 02_simulate_flood_project.py --hours 24
 
 # Queries
 mongosh 03_queries_exam.js
-```
-
-### Option 2: Using Docker Compose
-
-```bash
-cd labs/iot_flood_demo
-
-# Start MongoDB
-docker compose up -d
-
-# Run scripts against containerized MongoDB
-mongosh mongodb://localhost:27017 00_setup_mongodb.js
-python 01_seed_flood_project.py
-python 02_simulate_flood_project.py
-mongosh mongodb://localhost:27017 03_queries_exam.js
-
-# Clean up
-docker compose down -v
 ```
 
 ### Option 3: Using Make (if Makefile provided)

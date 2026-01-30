@@ -92,12 +92,15 @@ Each lab follows a standardized 4-stage execution flow:
 
 ### Prerequisites
 
-- **MongoDB** 6.0+ (7.0+ recommended)
-- **mongosh** (MongoDB Shell)
-- **Python** 3.10+ (for seed/simulation scripts)
-- **Docker** + Docker Compose (optional)
+- **Docker** + Docker Compose (Recommended) - Provides consistent MongoDB 7.0
+- **mongosh** (MongoDB Shell) - For running queries
+- **Python** 3.10+ - For seed/simulation scripts
+- **PyMongo** - Install with: `pip install pymongo`
 
-### Quick Start
+Alternative:
+- **MongoDB** 6.0+ (if not using Docker)
+
+### Quick Start with Docker (Recommended)
 
 1. **Clone the repository:**
    ```bash
@@ -105,46 +108,91 @@ Each lab follows a standardized 4-stage execution flow:
    cd mongo-db-labs
    ```
 
-2. **Choose a lab:**
+2. **Start MongoDB with Docker:**
    ```bash
-   cd labs/iot_flood_demo
+   # Start shared MongoDB instance (from root directory)
+   docker-compose up -d
+
+   # Wait for MongoDB to be ready
+   python scripts/wait_for_mongo.py --docker
+
+   # Optional: Enable MongoDB Express GUI
+   docker-compose --profile with-gui up -d
+   # Access at http://localhost:8081 (admin/admin123)
    ```
 
-3. **Start MongoDB** (using Docker):
+3. **Run a complete lab:**
    ```bash
-   docker compose up -d
+   # Using lab runner (recommended)
+   python scripts/lab.py all iot_flood_demo
+
+   # Or run specific stages
+   python scripts/lab.py setup iot_flood_demo
+   python scripts/lab.py seed iot_flood_demo
+   python scripts/lab.py simulate iot_flood_demo --hours 24
+   python scripts/lab.py queries iot_flood_demo
    ```
 
-4. **Run the lab sequence:**
+4. **Stop MongoDB when done:**
    ```bash
-   # Setup database schema
-   mongosh 00_setup_mongodb.js
-
-   # Install Python dependencies
-   python -m pip install -r requirements.txt
-
-   # Seed master data
-   python 01_seed_flood_project.py
-
-   # Generate time-series data (24 hours)
-   python 02_simulate_flood_project.py --hours 24
-
-   # Run query exercises
-   mongosh 03_queries_exam.js
+   docker-compose down
    ```
+
+### Manual Execution (Alternative)
+
+```bash
+# Navigate to a lab
+cd labs/iot_flood_demo
+
+# With Docker MongoDB running
+mongosh mongodb://labuser:labpassword@localhost:27017/ 00_setup_mongodb.js
+python 01_seed_flood_project.py
+python 02_simulate_flood_project.py --hours 24
+mongosh mongodb://labuser:labpassword@localhost:27017/ 03_queries_exam.js
+```
 
 ### Using Helper Scripts
 
 ```bash
+# List all available labs
+python scripts/lab.py list
+
+# Validate lab structure
+python scripts/lab.py validate iot_flood_demo
+
+# Clean lab database
+python scripts/lab.py clean iot_flood_demo
+
 # Create a new lab from template
 python scripts/new-lab.py my-new-lab
-
-# Run a complete lab sequence
-python scripts/run-lab.py iot_flood_demo
-
-# Reset a lab's database
-python scripts/reset-db.py iot_flood_demo
 ```
+
+## 🐳 Docker Architecture
+
+The repository uses a **unified Docker approach** with a single MongoDB instance shared across all labs:
+
+```yaml
+# Root docker-compose.yml provides:
+- MongoDB 7.0 with authentication
+- Persistent named volumes
+- Health checks
+- Optional MongoDB Express GUI
+- Automatic database initialization
+```
+
+**Benefits:**
+- ✅ No MongoDB installation required
+- ✅ Consistent environment across all labs
+- ✅ Shared data volumes (no duplication)
+- ✅ Single start/stop for all labs
+- ✅ Built-in health checks
+
+**Connection Details:**
+| Component | Value |
+|-----------|-------|
+| MongoDB URI | `mongodb://labuser:labpassword@localhost:27017/` |
+| Admin URI | `mongodb://admin:adminpassword@localhost:27017/admin` |
+| MongoDB Express | http://localhost:8081 (admin/admin123) |
 
 ## 📐 Design Conventions
 

@@ -55,12 +55,19 @@ class Colors:
 class LabRunner:
     """Main lab runner class."""
 
-    def __init__(self):
+    def __init__(self, use_docker: bool = False):
         """Initialize the lab runner."""
         self.script_dir = Path(__file__).parent
         self.project_root = self.script_dir.parent
         self.labs_dir = self.project_root / "labs"
-        self.mongo_uri = os.environ.get("MONGO_URI", "mongodb://localhost:27017")
+        self.use_docker = use_docker
+
+        # Set MongoDB URI based on Docker usage
+        if self.use_docker:
+            self.mongo_uri = os.environ.get("MONGO_URI", "mongodb://labuser:labpassword@localhost:27017/")
+        else:
+            self.mongo_uri = os.environ.get("MONGO_URI", "mongodb://localhost:27017")
+
         self.mongo_db_override = os.environ.get("MONGO_DB", None)
 
     def print_header(self, text: str) -> None:
@@ -88,6 +95,35 @@ class LabRunner:
     def print_step(self, step_num: int, total: int, description: str) -> None:
         """Print a step indicator."""
         print(f"\n{Colors.BOLD}Step {step_num}/{total}: {description}{Colors.RESET}")
+
+    def ensure_mongodb_ready(self) -> bool:
+        """Ensure MongoDB is ready to accept connections."""
+        wait_script = self.script_dir / "wait_for_mongo.py"
+
+        if not wait_script.exists():
+            self.print_warning("wait_for_mongo.py not found, skipping readiness check")
+            return True
+
+        args = ["python", str(wait_script)]
+
+        if self.use_docker:
+            args.extend(["--docker", "--auto-start"])
+
+        args.extend(["--quiet", "--timeout", "30"])
+
+        self.print_info("Checking MongoDB readiness...")
+        success, _, _ = self.run_command(args)
+
+        if success:
+            self.print_success("MongoDB is ready")
+            return True
+        else:
+            self.print_error("MongoDB is not available")
+            if self.use_docker:
+                self.print_info("Try: docker-compose up -d")
+            else:
+                self.print_info("Ensure MongoDB is running on port 27017")
+            return False
 
     def check_mongosh(self) -> bool:
         """Check if mongosh is available."""
@@ -463,6 +499,10 @@ class LabRunner:
         """Run the complete sequence for a lab."""
         self.print_header(f"Running complete sequence for: {lab_name}")
 
+        # Check MongoDB readiness first
+        if not self.ensure_mongodb_ready():
+            return 1
+
         if not self.validate_lab_exists(lab_name):
             return 1
 
@@ -617,8 +657,6 @@ class LabRunner:
 
 def main():
     """Main entry point."""
-    runner = LabRunner()
-
     # Create argument parser
     parser = argparse.ArgumentParser(
         description="MongoDB Teaching Labs Runner",
@@ -626,12 +664,16 @@ def main():
         epilog="""
 Examples:
   python scripts/lab.py list
-  python scripts/lab.py all iot_flood_demo
+  python scripts/lab.py all iot_flood_demo --docker
   python scripts/lab.py seed soil_humidity_lorawan --clean
   python scripts/lab.py simulate ecommerce-orders --hours 48
   MONGO_URI=mongodb://myserver:27017 python scripts/lab.py setup mylab
         """
     )
+
+    # Add global Docker flag
+    parser.add_argument('--docker', action='store_true',
+                        help='Use Docker MongoDB with authentication')
 
     subparsers = parser.add_subparsers(dest='command', help='Available commands')
 
@@ -678,6 +720,9 @@ Examples:
     if not args.command:
         parser.print_help()
         return 1
+
+    # Create runner with Docker flag
+    runner = LabRunner(use_docker=args.docker if hasattr(args, 'docker') else False)
 
     # Execute command
     try:

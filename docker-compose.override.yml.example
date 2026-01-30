@@ -1,0 +1,32 @@
+# Docker Compose Override Example
+# Copy this file to docker-compose.override.yml for local customizations
+# These settings will override the base docker-compose.yml
+
+version: '3.8'
+
+services:
+  mongodb:
+    # Override ports if 27017 is already in use
+    # ports:
+    #   - "27018:27017"
+
+    # Override environment variables
+    # environment:
+    #   MONGO_INITDB_ROOT_USERNAME: myuser
+    #   MONGO_INITDB_ROOT_PASSWORD: mypassword
+
+    # Add custom volume mounts
+    # volumes:
+    #   - ./my-data:/custom-data
+
+    # Override resource limits
+    # deploy:
+    #   resources:
+    #     limits:
+    #       memory: 2G
+    #     reservations:
+    #       memory: 1G
+
+  # Always include mongo-express (remove profiles requirement)
+  # mongo-express:
+  #   profiles: []  # Empty array removes profile requirement
