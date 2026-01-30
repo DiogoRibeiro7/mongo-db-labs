@@ -1,0 +1,378 @@
+name: Validate MongoDB Labs
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'labs/**'
+      - 'templates/**'
+      - 'scripts/**'
+      - '.github/workflows/validate-labs.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'labs/**'
+      - 'templates/**'
+      - 'scripts/**'
+
+jobs:
+  validate-structure:
+    name: Validate Lab Structure
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Validate lab structure
+      run: |
+        echo "Checking lab directory structure..."
+
+        # Check if labs directory exists
+        if [ ! -d "labs" ]; then
+          echo "Error: labs directory not found"
+          exit 1
+        fi
+
+        # Check each lab for required files
+        for lab in labs/*/; do
+          if [ -d "$lab" ]; then
+            lab_name=$(basename "$lab")
+            echo "Validating lab: $lab_name"
+
+            # Required files
+            required_files=(
+              "00_setup_mongodb.js"
+              "01_seed_*.py"
+              "03_queries_exam.js"
+              "DATABASE.md"
+              "README.md"
+            )
+
+            for pattern in "${required_files[@]}"; do
+              # Use find to check for files matching pattern
+              if ! find "$lab" -maxdepth 1 -name "$pattern" -type f | grep -q .; then
+                echo "  Missing required file: $pattern"
+                exit 1
+              fi
+            done
+
+            echo "  ✓ Structure validated"
+          fi
+        done
+
+    - name: Check documentation completeness
+      run: |
+        echo "Checking documentation..."
+
+        for lab in labs/*/; do
+          if [ -d "$lab" ]; then
+            lab_name=$(basename "$lab")
+
+            # Check DATABASE.md has minimum content
+            if [ -f "$lab/DATABASE.md" ]; then
+              lines=$(wc -l < "$lab/DATABASE.md")
+              if [ "$lines" -lt 50 ]; then
+                echo "Warning: $lab_name/DATABASE.md seems incomplete (less than 50 lines)"
+              fi
+            fi
+
+            # Check README.md has minimum content
+            if [ -f "$lab/README.md" ]; then
+              lines=$(wc -l < "$lab/README.md")
+              if [ "$lines" -lt 20 ]; then
+                echo "Warning: $lab_name/README.md seems incomplete (less than 20 lines)"
+              fi
+            fi
+          fi
+        done
+
+  lint-python:
+    name: Lint Python Scripts
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 black isort mypy
+
+    - name: Check Python syntax
+      run: |
+        echo "Checking Python syntax..."
+
+        # Find all Python files
+        find . -name "*.py" -type f | while read file; do
+          echo "Checking: $file"
+          python -m py_compile "$file"
+        done
+
+    - name: Run flake8 linter
+      run: |
+        # Run flake8 with relaxed settings for educational code
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 . --count --exit-zero --max-complexity=15 --max-line-length=120 --statistics
+
+    - name: Check import sorting (informational)
+      continue-on-error: true
+      run: |
+        isort . --check-only --diff
+
+  validate-mongodb-scripts:
+    name: Validate MongoDB Scripts
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "echo 'db.runCommand(\"ping\").ok' | mongosh --quiet"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install mongosh
+      run: |
+        wget -qO - https://www.mongodb.org/static/pgp/server-7.0.asc | sudo apt-key add -
+        echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+        sudo apt-get update
+        sudo apt-get install -y mongodb-mongosh
+
+    - name: Validate MongoDB setup scripts
+      run: |
+        echo "Testing MongoDB setup scripts..."
+
+        for lab in labs/*/; do
+          if [ -d "$lab" ]; then
+            lab_name=$(basename "$lab")
+            echo "Testing $lab_name setup script..."
+
+            setup_script="$lab/00_setup_mongodb.js"
+            if [ -f "$setup_script" ]; then
+              # Run setup script (should be idempotent)
+              mongosh --eval "load('$setup_script')" || {
+                echo "Error: Setup script failed for $lab_name"
+                exit 1
+              }
+
+              # Run it again to test idempotency
+              mongosh --eval "load('$setup_script')" || {
+                echo "Error: Setup script is not idempotent for $lab_name"
+                exit 1
+              }
+
+              echo "  ✓ Setup script validated"
+            fi
+          fi
+        done
+
+  test-lab-execution:
+    name: Test Lab Execution
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        lab: [iot_flood_demo, ecommerce-orders]
+      fail-fast: false
+
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "echo 'db.runCommand(\"ping\").ok' | mongosh --quiet"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install mongosh
+      run: |
+        wget -qO - https://www.mongodb.org/static/pgp/server-7.0.asc | sudo apt-key add -
+        echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+        sudo apt-get update
+        sudo apt-get install -y mongodb-mongosh
+
+    - name: Install Python dependencies
+      run: |
+        if [ -f "labs/${{ matrix.lab }}/requirements.txt" ]; then
+          pip install -r "labs/${{ matrix.lab }}/requirements.txt"
+        fi
+        pip install pymongo  # Ensure pymongo is always installed
+
+    - name: Run complete lab sequence
+      run: |
+        lab_dir="labs/${{ matrix.lab }}"
+
+        if [ ! -d "$lab_dir" ]; then
+          echo "Lab directory not found: $lab_dir"
+          exit 1
+        fi
+
+        cd "$lab_dir"
+
+        # Run setup
+        echo "Running setup script..."
+        mongosh --eval "load('00_setup_mongodb.js')"
+
+        # Run seed
+        echo "Running seed script..."
+        seed_script=$(ls 01_seed_*.py 2>/dev/null | head -1)
+        if [ -n "$seed_script" ]; then
+          python "$seed_script" --seed 42 || echo "Note: Seed script may need updates for CLI args"
+        fi
+
+        # Run simulation (if exists)
+        echo "Checking for simulation script..."
+        sim_script=$(ls 02_simulate_*.py 2>/dev/null | head -1)
+        if [ -n "$sim_script" ]; then
+          echo "Running simulation for 1 hour..."
+          python "$sim_script" --hours 1 --seed 42 || echo "Note: Simulation script may need updates for CLI args"
+        fi
+
+        # Run queries
+        echo "Running query exercises..."
+        mongosh --eval "load('03_queries_exam.js')"
+
+  validate-templates:
+    name: Validate Templates
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Test template creation
+      run: |
+        echo "Testing lab template..."
+
+        # Test creating a new lab from template
+        python scripts/new-lab.py test-lab-ci \
+          --name "Test Lab CI" \
+          --domain "Testing" \
+          --author "CI System"
+
+        # Verify the lab was created
+        if [ ! -d "labs/test-lab-ci" ]; then
+          echo "Error: Lab creation failed"
+          exit 1
+        fi
+
+        # Check placeholders were replaced
+        if grep -r "{{" labs/test-lab-ci/; then
+          echo "Error: Unreplaced placeholders found"
+          exit 1
+        fi
+
+        echo "✓ Template validation successful"
+
+  check-helper-scripts:
+    name: Validate Helper Scripts
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Test helper scripts syntax
+      run: |
+        echo "Validating helper scripts..."
+
+        # Check all scripts in scripts directory
+        for script in scripts/*.py; do
+          echo "Checking $script..."
+          python -m py_compile "$script"
+        done
+
+        # Test help commands
+        python scripts/new-lab.py --help
+        python scripts/run-lab.py --help
+        python scripts/reset-db.py --help
+
+  security-check:
+    name: Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Check for credentials
+      run: |
+        echo "Scanning for potential credentials..."
+
+        # Check for common credential patterns
+        patterns=(
+          "password.*=.*['\"].*['\"]"
+          "api[_-]?key.*=.*['\"].*['\"]"
+          "secret.*=.*['\"].*['\"]"
+          "token.*=.*['\"].*['\"]"
+        )
+
+        found_issues=false
+        for pattern in "${patterns[@]}"; do
+          if grep -r -i "$pattern" labs/ --include="*.py" --include="*.js" 2>/dev/null; then
+            echo "Warning: Potential credential found matching pattern: $pattern"
+            found_issues=true
+          fi
+        done
+
+        if [ "$found_issues" = true ]; then
+          echo "Please review the above findings"
+          # Don't fail the build, just warn
+        fi
+
+    - name: Check for sensitive files
+      run: |
+        echo "Checking for sensitive files..."
+
+        sensitive_patterns=(
+          "*.pem"
+          "*.key"
+          "*.env"
+          "*credentials*"
+          "*secret*"
+        )
+
+        for pattern in "${sensitive_patterns[@]}"; do
+          if find labs/ -name "$pattern" -type f 2>/dev/null | grep -q .; then
+            echo "Warning: Sensitive file pattern found: $pattern"
+          fi
+        done

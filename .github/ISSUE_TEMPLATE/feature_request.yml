@@ -1,0 +1,89 @@
+name: Feature Request
+description: Suggest a new feature or lab idea
+title: "[Feature]: "
+labels: ["enhancement"]
+assignees: []
+
+body:
+  - type: dropdown
+    id: type
+    attributes:
+      label: Feature type
+      description: What type of feature are you requesting?
+      options:
+        - New lab topic
+        - Lab improvement
+        - New tool/script
+        - Documentation enhancement
+        - CI/CD improvement
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Feature description
+      description: Describe the feature you'd like to see
+      placeholder: "I would like to see a lab that covers..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem it solves
+      description: What problem does this feature solve or what need does it address?
+      placeholder: "Currently, students struggle to understand..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How would you implement this feature?
+      placeholder: "The lab could include collections for..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Have you considered any alternative solutions?
+    validations:
+      required: false
+
+  - type: dropdown
+    id: difficulty
+    attributes:
+      label: If this is a new lab, what difficulty level?
+      options:
+        - Beginner
+        - Intermediate
+        - Advanced
+        - N/A
+    validations:
+      required: false
+
+  - type: textarea
+    id: learning-objectives
+    attributes:
+      label: Learning objectives (for new labs)
+      description: What MongoDB concepts would this lab teach?
+      placeholder: |
+        - Time-series collections
+        - Aggregation pipelines
+        - Index strategies
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Are you willing to contribute this feature?
+      options:
+        - label: I would like to implement this feature myself
+        - label: I can help test this feature
+        - label: I can help document this feature

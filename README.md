@@ -1,129 +1,214 @@
-# mongo-db-labs
+# MongoDB Teaching Labs Repository
 
-A teaching repository that bundles multiple **MongoDB lab databases** as self-contained folders.
-Each lab includes: a data model, seed + simulation scripts (when applicable), and an exam-style query sheet.
+A comprehensive collection of **MongoDB teaching labs** designed for educational purposes. Each lab provides hands-on experience with NoSQL database concepts, including schema design, time-series analytics, aggregation pipelines, and real-world data modeling scenarios.
 
-## Goals
+## 🎯 Purpose
 
-* Provide realistic NoSQL datasets for students to practice schema design, indexing, aggregation, and time-series analytics.
-* Keep each lab reproducible and isolated (so one lab never breaks another).
-* Encourage good engineering habits: versioned datasets, clear documentation, and consistent naming.
+This repository serves as a teaching resource for:
+- **Students** learning MongoDB fundamentals and advanced features
+- **Instructors** teaching NoSQL databases with ready-to-use, realistic datasets
+- **Developers** practicing MongoDB patterns with production-like scenarios
 
-## Repository structure
+## 📚 Available Labs
 
-Each lab lives in its own folder under `labs/`.
+| Lab Name | Slug | Difficulty | Key Topics | Collections | Domain |
+|----------|------|------------|------------|-------------|--------|
+| **IoT Flood Risk Monitoring** | `iot_flood_demo` | Intermediate | Time-series, GeoJSON, Adaptive Sampling, Alerts | 7 (sites, sensors, measurements, ratingCurves, samplingPolicies, policyState, alerts) | Environmental Monitoring |
+| **Soil Humidity LoRaWAN** | `soil_humidity_lorawan` | Intermediate | Time-series, IoT Sensors, LoRaWAN | 7 (sites, sensors, measurements, ratingCurves, samplingPolicies, policyState, alerts) | Agriculture IoT |
+
+## 🏗️ Repository Structure
 
 ```
 mongo-db-labs/
-  labs/
-    flood-risk-mongodb/
-      00_setup_mongodb.js
-      01_seed_flood_project.py
-      02_simulate_flood_project.py
-      03_queries_exam.js
-      DATABASE.md
-      README.md
-      docker-compose.yml
-      requirements.txt
-    <next-lab>/
-      ...
+├── README.md                   # This file
+├── LICENSE                     # Repository license
+├── .gitignore                  # Git ignore rules
+│
+├── docs/                       # Repository-wide documentation
+│   ├── STRUCTURE.md           # Detailed structure guide
+│   └── CONTRIBUTING.md        # Contribution guidelines
+│
+├── scripts/                    # Helper scripts
+│   ├── new-lab.py             # Create new lab from template
+│   ├── run-lab.py             # Execute lab sequence
+│   └── reset-db.py            # Database cleanup utility
+│
+├── templates/                  # Lab templates
+│   └── lab/                   # Standard lab template
+│       ├── 00_setup_mongodb.js
+│       ├── 01_seed_project.py
+│       ├── 02_simulate_project.py
+│       ├── 03_queries_exam.js
+│       ├── DATABASE.md
+│       ├── README.md
+│       ├── docker-compose.yml
+│       └── requirements.txt
+│
+└── labs/                       # All teaching labs
+    ├── iot_flood_demo/        # IoT flood monitoring lab
+    │   ├── __init__.py
+    │   ├── 00_setup_mongodb.js
+    │   ├── 01_seed_flood_project.py
+    │   ├── 02_simulate_flood_project.py
+    │   ├── 03_queries_exam.js
+    │   ├── DATABASE.md
+    │   ├── README.md
+    │   ├── docker-compose.yml
+    │   └── requirements.txt
+    │
+    └── soil_humidity_lorawan/ # Soil monitoring lab
+        └── ... (same structure)
 ```
 
-### What each lab folder must contain
+## 📋 Common Lab Layout
 
-* `DATABASE.md`
-  Data dictionary. Every key documented.
-* `README.md`
-  How to run the lab and what students should do.
-* `00_setup_mongodb.js`
-  Creates collections, indexes, and (optionally) schema validation.
-* `01_seed_*.py`
-  Inserts master/config data (sites, sensors, policies, etc.).
-* `02_simulate_*.py` (optional)
-  Generates time-series/telemetry and events.
-* `03_queries_exam.js`
-  Query sheet with exercises and reference queries.
-* `docker-compose.yml` (optional but recommended)
-  Standard MongoDB environment for students.
-* `requirements.txt` (optional)
-  Python dependencies for the lab scripts.
+Each lab follows a standardized 4-stage execution flow:
 
-## Conventions
+### Stage 0: Setup (`00_setup_mongodb.js`)
+- Creates database and collections
+- Configures time-series collections
+- Creates indexes for performance
+- Applies JSON schema validators (optional)
 
-* **Database names** are unique per lab (example: `iot_flood_demo`).
-* **All keys are in English**, using `camelCase`.
-* Timestamps:
+### Stage 1: Seed (`01_seed_*.py`)
+- Inserts master/configuration data
+- Creates sites, sensors, policies
+- Sets up reference data (e.g., rating curves)
+- Uses deterministic seeding for reproducibility
 
-  * `ts` is always UTC `Date`.
-  * `createdAt`, `updatedAt` are UTC `Date`.
-* Metrics should be explicit and stable:
+### Stage 2: Simulate (`02_simulate_*.py`) *[Optional]*
+- Generates synthetic time-series data
+- Creates realistic telemetry patterns
+- Triggers events and alerts
+- Accepts parameters: `--hours`, `--seed`, `--base-step-sec`
 
-  * Prefer `waterLevelM`, `flowRateM3s`, `rainfallRateMmh`, etc.
+### Stage 3: Query (`03_queries_exam.js`)
+- Exam-style aggregation exercises
+- Reference implementations
+- Performance analysis queries
+- Real-world scenario problems
 
-## Requirements
+## 🚀 Getting Started
 
-* MongoDB 6+ (MongoDB 5+ if the lab uses `$dateTrunc` / `$setWindowFields`)
-* `mongosh`
-* Python 3.10+ (only required for labs that ship Python scripts)
-* Optional: Docker + Docker Compose
+### Prerequisites
 
-## Running a lab (general)
+- **MongoDB** 6.0+ (7.0+ recommended)
+- **mongosh** (MongoDB Shell)
+- **Python** 3.10+ (for seed/simulation scripts)
+- **Docker** + Docker Compose (optional)
 
-Go into the lab folder and follow its `README.md`.
-Typical sequence:
+### Quick Start
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/yourusername/mongo-db-labs.git
+   cd mongo-db-labs
+   ```
+
+2. **Choose a lab:**
+   ```bash
+   cd labs/iot_flood_demo
+   ```
+
+3. **Start MongoDB** (using Docker):
+   ```bash
+   docker compose up -d
+   ```
+
+4. **Run the lab sequence:**
+   ```bash
+   # Setup database schema
+   mongosh 00_setup_mongodb.js
+
+   # Install Python dependencies
+   python -m pip install -r requirements.txt
+
+   # Seed master data
+   python 01_seed_flood_project.py
+
+   # Generate time-series data (24 hours)
+   python 02_simulate_flood_project.py --hours 24
+
+   # Run query exercises
+   mongosh 03_queries_exam.js
+   ```
+
+### Using Helper Scripts
 
 ```bash
-cd labs/<lab-name>
+# Create a new lab from template
+python scripts/new-lab.py my-new-lab
 
-# 1) Create collections + indexes (+ schema validation if included)
-mongosh 00_setup_mongodb.js
+# Run a complete lab sequence
+python scripts/run-lab.py iot_flood_demo
 
-# 2) Install Python deps (if requirements.txt exists)
-python -m pip install -r requirements.txt
-
-# 3) Seed the database
-python 01_seed_*.py
-
-# 4) Simulate / generate time series (if the lab includes it)
-python 02_simulate_*.py
-
-# 5) Run the query sheet
-mongosh 03_queries_exam.js
+# Reset a lab's database
+python scripts/reset-db.py iot_flood_demo
 ```
 
-## Running a lab with Docker (general)
+## 📐 Design Conventions
 
-If the lab includes `docker-compose.yml`:
+### Database Naming
+- **Database names** match the lab slug (e.g., `iot_flood_demo`)
+- **Collection names** use camelCase (e.g., `samplingPolicies`)
 
-```bash
-cd labs/<lab-name>
-docker compose up -d
+### Field Naming
+- **All fields** use camelCase in English
+- **Metrics** include units: `waterLevelM`, `flowRateM3s`, `rainfallRateMmh`
+- **Timestamps**: `ts` (time-series), `createdAt`, `updatedAt` (UTC Date objects)
 
-mongosh "mongodb://localhost:27017" 00_setup_mongodb.js
-python -m pip install -r requirements.txt
-python 01_seed_*.py
-python 02_simulate_*.py
-mongosh "mongodb://localhost:27017" 03_queries_exam.js
-```
+### Schema Validation
+- Each lab includes optional JSON schema validators
+- Can be disabled by commenting out validator sections in setup
+- Helps students understand data constraints
 
-## Labs
+### Reproducibility
+- Seed scripts accept `--seed` parameter for deterministic data
+- Setup scripts are idempotent (safe to re-run)
+- All labs can be reset to initial state
 
-### Flood Risk Monitoring (rivers + stormwater + rain gauges)
+## 🤝 Contributing
 
-Folder: `labs/flood-risk-mongodb/`
+To add a new lab:
 
-Topics covered:
+1. **Copy the template:**
+   ```bash
+   cp -r templates/lab labs/your-lab-name
+   ```
 
-* Time-series collection design
-* Adaptive sampling policies
-* Alert/event logging
-* Indexing strategies
-* Aggregations + window functions
+2. **Customize the lab:**
+   - Update all placeholder values in template files
+   - Document every field in `DATABASE.md`
+   - Provide clear learning objectives in `README.md`
 
-## How to add a new lab
+3. **Test thoroughly:**
+   - Ensure all scripts run without errors
+   - Verify query exercises have solutions
+   - Test with different time ranges and seeds
 
-1. Create a folder: `labs/<your-lab-name>/`
-2. Copy the template structure listed above.
-3. Ensure `DATABASE.md` documents every key.
-4. Keep it runnable from scratch (clean setup + deterministic seed options).
+4. **Submit a pull request:**
+   - Update this README's lab table
+   - Include sample output from queries
+   - Add any special requirements
 
+See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for detailed guidelines.
+
+## 📖 Documentation
+
+- [Repository Structure Guide](docs/STRUCTURE.md) - Detailed explanation of file organization
+- [Lab Template Guide](templates/lab/README.md) - How to use the lab template
+- Individual lab documentation in each `labs/*/README.md`
+
+## 📄 License
+
+This repository is provided for educational purposes. See [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+These labs were designed for teaching MongoDB concepts in academic and professional training contexts. Special thanks to all contributors who have helped create and refine these educational resources.
+
+---
+
+**Questions?** Open an issue or contact the maintainers.
+
+**Found a bug?** Pull requests are welcome!

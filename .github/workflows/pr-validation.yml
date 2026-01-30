@@ -1,0 +1,292 @@
+name: PR Validation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  validate-pr:
+    name: Validate Pull Request
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout PR
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Check PR title format
+      run: |
+        PR_TITLE="${{ github.event.pull_request.title }}"
+        echo "PR Title: $PR_TITLE"
+
+        # Check if title follows conventional commit format
+        if ! echo "$PR_TITLE" | grep -qE "^(feat|fix|docs|style|refactor|test|chore)(\(.+\))?: .+"; then
+          echo "Error: PR title does not follow conventional commit format"
+          echo "Expected format: type(scope): description"
+          echo "Types: feat, fix, docs, style, refactor, test, chore"
+          exit 1
+        fi
+
+    - name: Check file changes
+      run: |
+        # Get list of changed files
+        git diff --name-only origin/${{ github.event.pull_request.base.ref }}..HEAD > changed_files.txt
+
+        echo "Changed files:"
+        cat changed_files.txt
+
+        # Check if lab changes include documentation
+        if grep -q "^labs/" changed_files.txt; then
+          echo "Lab changes detected, checking for documentation..."
+
+          # Extract lab directories that were modified
+          grep "^labs/" changed_files.txt | cut -d'/' -f1,2 | sort -u | while read lab_dir; do
+            echo "Checking $lab_dir..."
+
+            # Check if DATABASE.md was updated
+            if ! grep -q "$lab_dir/DATABASE.md" changed_files.txt; then
+              echo "Warning: $lab_dir modified but DATABASE.md not updated"
+            fi
+
+            # Check if README.md was updated
+            if ! grep -q "$lab_dir/README.md" changed_files.txt; then
+              echo "Warning: $lab_dir modified but README.md not updated"
+            fi
+          done
+        fi
+
+    - name: Check for large files
+      run: |
+        # Check for files larger than 1MB
+        find . -type f -size +1M | grep -v "^./.git/" | while read file; do
+          size=$(du -h "$file" | cut -f1)
+          echo "Warning: Large file detected: $file ($size)"
+
+          # Check if it's a data file that should be generated
+          if echo "$file" | grep -qE "\.(json|csv|bson|dump)$"; then
+            echo "Error: Data files should be generated, not committed"
+            exit 1
+          fi
+        done
+
+  check-new-lab:
+    name: Validate New Lab (if applicable)
+    runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.title, 'feat') || contains(github.event.pull_request.title, 'lab')
+
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+
+    steps:
+    - name: Checkout PR
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install mongosh
+      run: |
+        wget -qO - https://www.mongodb.org/static/pgp/server-7.0.asc | sudo apt-key add -
+        echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+        sudo apt-get update
+        sudo apt-get install -y mongodb-mongosh
+
+    - name: Detect new labs
+      id: detect
+      run: |
+        # Get list of added lab directories
+        git diff --name-status origin/${{ github.event.pull_request.base.ref }}..HEAD | \
+          grep "^A.*labs/[^/]*/README.md$" | \
+          sed 's|^A.*labs/\([^/]*\)/README.md$|\1|' > new_labs.txt
+
+        if [ -s new_labs.txt ]; then
+          echo "New labs detected:"
+          cat new_labs.txt
+          echo "has_new_labs=true" >> $GITHUB_OUTPUT
+        else
+          echo "No new labs detected"
+          echo "has_new_labs=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Test new labs
+      if: steps.detect.outputs.has_new_labs == 'true'
+      run: |
+        while read lab_name; do
+          echo "Testing new lab: $lab_name"
+          lab_dir="labs/$lab_name"
+
+          # Check required files
+          required=(
+            "00_setup_mongodb.js"
+            "DATABASE.md"
+            "README.md"
+            "03_queries_exam.js"
+          )
+
+          for file in "${required[@]}"; do
+            if [ ! -f "$lab_dir/$file" ]; then
+              echo "Error: Missing required file: $file"
+              exit 1
+            fi
+          done
+
+          # Check for at least one seed script
+          if ! ls "$lab_dir"/01_seed_*.py >/dev/null 2>&1; then
+            echo "Error: No seed script found"
+            exit 1
+          fi
+
+          # Test MongoDB setup
+          cd "$lab_dir"
+          mongosh --eval "load('00_setup_mongodb.js')"
+
+          # Install dependencies if requirements.txt exists
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+
+          echo "✓ Lab $lab_name validated"
+        done < new_labs.txt
+
+  label-pr:
+    name: Auto-label PR
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+
+    steps:
+    - name: Checkout PR
+      uses: actions/checkout@v4
+
+    - name: Detect changes and label
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const pr = context.payload.pull_request;
+          const labels = [];
+
+          // Get changed files
+          const { data: files } = await github.rest.pulls.listFiles({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: pr.number
+          });
+
+          const paths = files.map(f => f.filename);
+
+          // Determine labels based on files
+          if (paths.some(p => p.startsWith('labs/'))) {
+            labels.push('lab');
+
+            // Check for new lab
+            if (files.some(f => f.status === 'added' && f.filename.includes('/README.md'))) {
+              labels.push('new-lab');
+            }
+          }
+
+          if (paths.some(p => p.startsWith('docs/'))) {
+            labels.push('documentation');
+          }
+
+          if (paths.some(p => p.startsWith('scripts/'))) {
+            labels.push('tooling');
+          }
+
+          if (paths.some(p => p.startsWith('.github/'))) {
+            labels.push('ci/cd');
+          }
+
+          if (paths.some(p => p.startsWith('templates/'))) {
+            labels.push('template');
+          }
+
+          // Determine size
+          const additions = pr.additions || 0;
+          const deletions = pr.deletions || 0;
+          const total = additions + deletions;
+
+          if (total < 10) {
+            labels.push('size/XS');
+          } else if (total < 50) {
+            labels.push('size/S');
+          } else if (total < 200) {
+            labels.push('size/M');
+          } else if (total < 500) {
+            labels.push('size/L');
+          } else {
+            labels.push('size/XL');
+          }
+
+          // Apply labels
+          if (labels.length > 0) {
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              labels: labels
+            });
+          }
+
+  comment-checklist:
+    name: Post PR Checklist
+    runs-on: ubuntu-latest
+    if: github.event.action == 'opened'
+    permissions:
+      pull-requests: write
+
+    steps:
+    - name: Post checklist comment
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const pr = context.payload.pull_request;
+
+          // Check if it's a new lab PR
+          const isNewLab = pr.title.toLowerCase().includes('lab') ||
+                          pr.title.toLowerCase().includes('feat');
+
+          let checklist = `## PR Checklist
+
+          Thank you for your contribution! Please ensure you've completed the following:
+
+          ### General
+          - [ ] PR title follows conventional commit format
+          - [ ] No sensitive data or credentials included
+          - [ ] Documentation updated where necessary
+          `;
+
+          if (isNewLab) {
+            checklist += `
+          ### New Lab Requirements
+          - [ ] All required files present (00-03 scripts, DATABASE.md, README.md)
+          - [ ] DATABASE.md documents every field
+          - [ ] README.md includes learning objectives
+          - [ ] Scripts handle errors gracefully
+          - [ ] Query exercises have solutions
+          - [ ] Lab tested with clean database
+          - [ ] Added to main README lab table
+          `;
+          }
+
+          checklist += `
+          ### Testing
+          - [ ] Scripts run without errors
+          - [ ] Tested with MongoDB 6.0+
+          - [ ] Python scripts compatible with 3.10+
+
+          ---
+          *Automated checks will validate structure and run tests.*
+          `;
+
+          await github.rest.issues.createComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: pr.number,
+            body: checklist
+          });

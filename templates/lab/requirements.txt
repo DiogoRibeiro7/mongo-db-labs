@@ -1,0 +1,10 @@
+# Python dependencies for {{LAB_NAME}}
+
+# MongoDB driver (required)
+pymongo>=4.6
+
+# Add other dependencies as needed:
+# numpy>=1.24.0      # For numerical computations
+# pandas>=2.0.0      # For data manipulation
+# faker>=20.0.0      # For generating fake data
+# python-dateutil>=2.8.0  # For date handling

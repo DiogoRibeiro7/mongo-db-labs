@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation Question
+    url: https://github.com/yourusername/mongo-db-labs/blob/main/docs/STRUCTURE.md
+    about: Check the structure guide for repository organization questions
+  - name: Contributing Guide
+    url: https://github.com/yourusername/mongo-db-labs/blob/main/docs/CONTRIBUTING.md
+    about: Read the contributing guide before submitting PRs
+  - name: MongoDB Documentation
+    url: https://www.mongodb.com/docs/
+    about: Official MongoDB documentation for general MongoDB questions
