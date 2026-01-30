@@ -92,6 +92,86 @@ See [DATABASE.md](DATABASE.md) for complete schema documentation.
 - Signal quality tracking
 - Adaptive sampling based on conditions
 
+## Schema Validation Exercises
+
+This lab includes comprehensive schema validation for agricultural IoT data integrity.
+
+### Validation Files
+
+1. **`00_setup_mongodb.js`** - Standard collection setup with validation
+2. **`04_bad_inserts.js`** - Test validation with 23 invalid document examples
+
+### Running Validation Tests
+
+```bash
+# Setup collections with validation
+mongosh 00_setup_mongodb.js
+
+# Test validation rules with invalid documents
+mongosh 04_bad_inserts.js
+```
+
+### Key Validation Rules
+
+| Collection | Validation Rules | Common Violations |
+|------------|-----------------|-------------------|
+| **farms** | • Positive area values<br>• Valid GeoJSON format<br>• Coordinate ranges | Negative area, invalid coordinates |
+| **fields** | • Valid crop types (enum)<br>• Area limits (0.1-1000 ha)<br>• Planting date not future | Unknown crops, extreme areas |
+| **gateways** | • EUI format (16 hex chars)<br>• Allowed models<br>• Location required | Invalid EUI, missing location |
+| **devices** | • LoRa parameters (SF 7-12)<br>• Bandwidth (125/250/500)<br>• Valid device types | Out-of-spec LoRa config |
+| **measurements** | • Moisture 0-100%<br>• Temperature -50 to 60°C<br>• RSSI negative values | Impossible readings |
+| **irrigation_schedules** | • Min < Max thresholds<br>• Valid time formats<br>• Schedule types | Inverted thresholds |
+| **alerts** | • Severity levels (low/medium/high)<br>• Alert types enum<br>• Message length | Invalid severity |
+
+### Student Exercises
+
+1. **Test Moisture Limits**:
+   ```javascript
+   // Try inserting moisture > 100%
+   db.measurements.insertOne({
+     ts: new Date(),
+     deviceEui: "A840411234567890",
+     soilMoisturePct: 150  // Invalid!
+   });
+   ```
+
+2. **Validate LoRa Parameters**:
+   ```javascript
+   // Invalid spreading factor
+   db.devices.insertOne({
+     deviceEui: "A840411234567890",
+     loraConfig: {
+       spreadingFactor: 15,  // Must be 7-12
+       bandwidth: 125
+     }
+   });
+   ```
+
+3. **Check Agricultural Constraints**:
+   ```javascript
+   // Negative farm area
+   db.farms.insertOne({
+     farmName: "Test Farm",
+     totalAreaHa: -50  // Invalid!
+   });
+   ```
+
+### Understanding Validation Errors
+
+When validation fails, MongoDB provides detailed error messages:
+
+```javascript
+{
+  "errInfo": {
+    "failingDocumentId": ObjectId("..."),
+    "details": {
+      "operatorName": "$jsonSchema",
+      "schemaRulesNotSatisfied": [...]
+    }
+  }
+}
+```
+
 ## Sample Scenarios
 
 The simulation generates realistic agricultural patterns:
