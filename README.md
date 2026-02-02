@@ -13,8 +13,11 @@ This repository serves as a teaching resource for:
 
 | Lab Name | Slug | Difficulty | Key Topics | Collections | Domain |
 |----------|------|------------|------------|-------------|--------|
-| **IoT Flood Risk Monitoring** | `iot_flood_demo` | Intermediate | Time-series, GeoJSON, Adaptive Sampling, Alerts | 7 (sites, sensors, measurements, ratingCurves, samplingPolicies, policyState, alerts) | Environmental Monitoring |
-| **Soil Humidity LoRaWAN** | `soil_humidity_lorawan` | Intermediate | Time-series, IoT Sensors, LoRaWAN | 7 (sites, sensors, measurements, ratingCurves, samplingPolicies, policyState, alerts) | Agriculture IoT |
+| **Cold Chain Monitoring System** | `cold-chain-monitoring-mongodb` | Intermediate | Cold chain logistics, Temperature monitoring, Time-series data, ... | 6 (assets, sensors, measurements, ...) | Logistics & Supply Chain |
+| **Smart Grid Energy Monitoring System** | `energy-monitoring-smart-grid` | Intermediate | Smart grid infrastructure, Energy consumption patterns, Time-of-use tariffs, ... | 6 (buildings, meters, tariffs, ...) | Energy & Utilities |
+| **IoT Flood Risk Monitoring** | `iot_flood_demo` | Intermediate | Time-series data, GeoJSON, Adaptive sampling, ... | 7 (sites, sensors, measurements, ...) | Environmental Monitoring |
+| **Smart Parking Occupancy System** | `smart-parking-occupancy` | Intermediate | Smart city infrastructure, Parking management, LoRa/magnetometer sensors, ... | 6 (zones, parking_spots, sensors, ...) | Smart City & IoT |
+| **Soil Humidity LoRaWAN Monitoring** | `soil_humidity_lorawan` | Intermediate | Agricultural IoT, LoRaWAN protocol, Soil moisture monitoring, ... | 7 (farms, fields, sensors, ...) | Agriculture IoT |
 
 ## 🏗️ Repository Structure
 

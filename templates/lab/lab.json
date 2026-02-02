@@ -1,0 +1,53 @@
+{
+  "name": "Lab Display Name",
+  "slug": "lab_directory_name",
+  "domain": "Domain/Industry",
+  "difficulty": "beginner|intermediate|advanced",
+  "collections": [
+    "collection1",
+    "collection2"
+  ],
+  "key_topics": [
+    "Topic 1",
+    "Topic 2",
+    "Topic 3"
+  ],
+  "sensors": [
+    "sensor_type_1",
+    "sensor_type_2"
+  ],
+  "features": {
+    "time_series": false,
+    "geospatial": false,
+    "schema_validation": true,
+    "aggregation_pipelines": false,
+    "transactions": false,
+    "change_streams": false
+  },
+  "learning_outcomes": [
+    "Students will be able to...",
+    "Students will understand...",
+    "Students will implement..."
+  ],
+  "prerequisites": [
+    "MongoDB 6.0+ (7.0+ recommended)",
+    "Basic understanding of..."
+  ],
+  "estimated_time": "2-3 hours",
+  "files": {
+    "setup": "00_setup_mongodb.js",
+    "seed": "01_seed_project.py",
+    "simulate": "02_simulate_project.py",
+    "queries": "03_queries_exam.js",
+    "validation": "04_bad_inserts.js"
+  },
+  "database": "database_name",
+  "tags": [
+    "tag1",
+    "tag2",
+    "tag3"
+  ],
+  "version": "1.0.0",
+  "author": "Author Name",
+  "last_updated": "2024-01-30"
+}

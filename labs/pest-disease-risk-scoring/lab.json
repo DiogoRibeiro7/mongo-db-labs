@@ -1,0 +1,75 @@
+{
+  "name": "Agricultural Pest & Disease Risk Scoring System",
+  "slug": "pest-disease-risk-scoring",
+  "domain": "Agriculture & Precision Farming",
+  "difficulty": "intermediate",
+  "collections": [
+    "farms",
+    "fields",
+    "sensors",
+    "measurements",
+    "risk_assessments",
+    "events"
+  ],
+  "key_topics": [
+    "Multi-farm monitoring",
+    "Disease risk modeling",
+    "Pest population tracking",
+    "Weather correlation",
+    "Integrated pest management",
+    "Spray recommendations",
+    "Precision agriculture"
+  ],
+  "sensors": [
+    "leaf_wetness",
+    "air_temperature",
+    "relative_humidity",
+    "rainfall",
+    "trap_count",
+    "soil_moisture",
+    "wind_speed"
+  ],
+  "features": {
+    "time_series": true,
+    "risk_calculation": true,
+    "schema_validation": true,
+    "aggregation_pipelines": true,
+    "real_time_monitoring": true,
+    "predictive_alerts": true
+  },
+  "learning_outcomes": [
+    "Design time-series collections for agricultural monitoring",
+    "Implement risk scoring algorithms for pest/disease",
+    "Build correlation analysis between weather and infestations",
+    "Create spray recommendation systems",
+    "Develop trend analysis for risk patterns",
+    "Analyze multi-farm data aggregations"
+  ],
+  "prerequisites": [
+    "MongoDB 6.0+ (7.0+ recommended for time-series)",
+    "Basic understanding of agricultural practices",
+    "Familiarity with pest management concepts"
+  ],
+  "estimated_time": "2-3 hours",
+  "files": {
+    "setup": "00_setup_mongodb.js",
+    "seed": "01_seed_farms.py",
+    "simulate": "02_simulate_conditions.py",
+    "queries": "03_queries_exam.js",
+    "validation": "04_bad_inserts.js"
+  },
+  "database": "agrimonitor_db",
+  "tags": [
+    "agriculture",
+    "pest-control",
+    "disease-management",
+    "weather-monitoring",
+    "risk-assessment",
+    "time-series",
+    "iot",
+    "precision-farming"
+  ],
+  "version": "1.0.0",
+  "author": "MongoDB Labs",
+  "last_updated": "2024-01-30"
+}

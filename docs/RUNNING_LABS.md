@@ -13,23 +13,23 @@ This guide explains how to run MongoDB teaching labs using Docker and the unifie
 7. [Troubleshooting](#troubleshooting)
 8. [Manual Execution](#manual-execution)
 
----
+--------------------------------------------------------------------------------
 
 ## Quick Start
 
 The fastest way to run a complete lab with Docker:
 
 ```bash
-# 1. Start MongoDB with Docker
+# 1\. Start MongoDB with Docker
 docker-compose up -d
 
-# 2. Wait for MongoDB to be ready
+# 2\. Wait for MongoDB to be ready
 python scripts/wait_for_mongo.py --docker
 
-# 3. Run everything for a lab (setup → seed → simulate → queries)
+# 3\. Run everything for a lab (setup → seed → simulate → queries)
 python scripts/lab.py all iot_flood_demo
 
-# 4. Stop MongoDB when done
+# 4\. Stop MongoDB when done
 docker-compose down
 ```
 
@@ -46,7 +46,7 @@ MONGO_URI=mongodb://myserver:27017 python scripts/lab.py all soil_humidity_loraw
 python scripts/lab.py all ecommerce-orders --clean --hours 48
 ```
 
----
+--------------------------------------------------------------------------------
 
 ## Docker Setup
 
@@ -95,15 +95,15 @@ docker-compose --profile with-gui up -d
 
 ### Docker Connection Details
 
-| Parameter | Value |
-|-----------|-------|
-| Host | localhost |
-| Port | 27017 |
-| Admin User | admin |
-| Admin Password | adminpassword |
-| Lab User | labuser |
-| Lab Password | labpassword |
-| Connection String | `mongodb://labuser:labpassword@localhost:27017/` |
+Parameter         | Value
+----------------- | ------------------------------------------------
+Host              | localhost
+Port              | 27017
+Admin User        | admin
+Admin Password    | adminpassword
+Lab User          | labuser
+Lab Password      | labpassword
+Connection String | `mongodb://labuser:labpassword@localhost:27017/`
 
 ### Wait for MongoDB Script
 
@@ -136,42 +136,47 @@ docker-compose down
 docker-compose down -v
 ```
 
----
+--------------------------------------------------------------------------------
 
 ## Prerequisites
 
 ### Required Software
 
 1. **Docker & Docker Compose** (Recommended)
-   - Provides consistent MongoDB 7.0 environment
-   - No local MongoDB installation needed
-   - Download: https://www.docker.com/products/docker-desktop/
 
-   OR
+  - Provides consistent MongoDB 7.0 environment
+  - No local MongoDB installation needed
+  - Download: <https://www.docker.com/products/docker-desktop/>
 
-   **MongoDB 6.0+** (Alternative)
-   - Local installation if Docker not available
-   - Running on default port 27017 or custom
+  OR
+
+  **MongoDB 6.0+** (Alternative)
+
+  - Local installation if Docker not available
+  - Running on default port 27017 or custom
 
 2. **MongoDB Shell (mongosh)**
-   - Download: https://www.mongodb.com/try/download/shell
-   - Required for setup and query scripts
+
+  - Download: <https://www.mongodb.com/try/download/shell>
+  - Required for setup and query scripts
 
 3. **Python 3.10+**
-   - Required for seed and simulation scripts
-   - Check version: `python --version`
+
+  - Required for seed and simulation scripts
+  - Check version: `python --version`
 
 4. **PyMongo** (Python MongoDB driver)
-   ```bash
-   pip install pymongo
-   ```
+
+  ```bash
+  pip install pymongo
+  ```
 
 ### Optional Software
 
 - **Git** - For cloning the repository
 - **MongoDB Compass** - GUI for database inspection
 
----
+--------------------------------------------------------------------------------
 
 ## Using the Lab Runner
 
@@ -189,39 +194,39 @@ python scripts/lab.py <command> <lab-name>
 
 ### Available Commands
 
-| Command | Description | Example |
-|---------|-------------|---------|
-| `list` | Show all available labs | `python scripts/lab.py list` |
-| `setup` | Create database and collections | `python scripts/lab.py setup iot_flood_demo` |
-| `seed` | Insert master/reference data | `python scripts/lab.py seed iot_flood_demo` |
-| `simulate` | Generate time-series data | `python scripts/lab.py simulate iot_flood_demo --hours 24` |
-| `queries` | Run query exercises | `python scripts/lab.py queries iot_flood_demo` |
-| `all` | Run complete sequence | `python scripts/lab.py all iot_flood_demo` |
-| `validate` | Check lab structure | `python scripts/lab.py validate iot_flood_demo` |
-| `clean` | Drop lab database | `python scripts/lab.py clean iot_flood_demo` |
+Command    | Description                     | Example
+---------- | ------------------------------- | ----------------------------------------------------------
+`list`     | Show all available labs         | `python scripts/lab.py list`
+`setup`    | Create database and collections | `python scripts/lab.py setup iot_flood_demo`
+`seed`     | Insert master/reference data    | `python scripts/lab.py seed iot_flood_demo`
+`simulate` | Generate time-series data       | `python scripts/lab.py simulate iot_flood_demo --hours 24`
+`queries`  | Run query exercises             | `python scripts/lab.py queries iot_flood_demo`
+`all`      | Run complete sequence           | `python scripts/lab.py all iot_flood_demo`
+`validate` | Check lab structure             | `python scripts/lab.py validate iot_flood_demo`
+`clean`    | Drop lab database               | `python scripts/lab.py clean iot_flood_demo`
 
 ### Step-by-Step Execution
 
 If you prefer to run steps individually:
 
 ```bash
-# 1. List available labs
+# 1\. List available labs
 python scripts/lab.py list
 
-# 2. Set up the database structure
+# 2\. Set up the database structure
 python scripts/lab.py setup soil_humidity_lorawan
 
-# 3. Seed with master data
+# 3\. Seed with master data
 python scripts/lab.py seed soil_humidity_lorawan
 
-# 4. Generate time-series data (optional)
+# 4\. Generate time-series data (optional)
 python scripts/lab.py simulate soil_humidity_lorawan --hours 48
 
-# 5. Run query exercises
+# 5\. Run query exercises
 python scripts/lab.py queries soil_humidity_lorawan
 ```
 
----
+--------------------------------------------------------------------------------
 
 ## Environment Configuration
 
@@ -259,7 +264,7 @@ set MONGO_DB=my_database
 python scripts/lab.py all iot_flood_demo
 ```
 
----
+--------------------------------------------------------------------------------
 
 ## Command Reference
 
@@ -270,6 +275,7 @@ python scripts/lab.py list
 ```
 
 Output:
+
 ```
 Available MongoDB Teaching Labs
 Found 3 lab(s):
@@ -292,6 +298,7 @@ python scripts/lab.py setup <lab-name>
 ```
 
 Creates:
+
 - Database and collections
 - Indexes for performance
 - Schema validators
@@ -304,9 +311,11 @@ python scripts/lab.py seed <lab-name> [--clean]
 ```
 
 Options:
+
 - `--clean` - Remove existing data before seeding
 
 Inserts:
+
 - Reference data (sites, sensors, users, products)
 - Configuration (policies, rules, thresholds)
 - Initial state data
@@ -318,10 +327,12 @@ python scripts/lab.py simulate <lab-name> [--hours N] [--seed N]
 ```
 
 Options:
+
 - `--hours N` - Hours of data to generate (default: 24)
 - `--seed N` - Random seed for reproducible data
 
 Generates:
+
 - Sensor measurements
 - Transaction logs
 - Event streams
@@ -334,6 +345,7 @@ python scripts/lab.py queries <lab-name>
 ```
 
 Executes:
+
 - Aggregation pipelines
 - Time-series analysis
 - Performance benchmarks
@@ -346,12 +358,14 @@ python scripts/lab.py all <lab-name> [--clean] [--hours N] [--seed N]
 ```
 
 Runs the complete sequence:
+
 1. Database setup
 2. Data seeding
 3. Simulation (if available)
 4. Query execution
 
 Options:
+
 - `--clean` - Clean existing data first
 - `--hours N` - Simulation duration (default: 24)
 - `--seed N` - Random seed for reproducibility
@@ -363,6 +377,7 @@ python scripts/lab.py validate <lab-name>
 ```
 
 Checks:
+
 - Required files present
 - Database configuration
 - Script naming conventions
@@ -376,17 +391,18 @@ python scripts/lab.py clean <lab-name>
 
 **Warning**: This will permanently delete all data in the lab's database.
 
----
+--------------------------------------------------------------------------------
 
 ## Troubleshooting
 
 ### Common Issues and Solutions
 
-#### 1. mongosh: command not found
+#### 1\. mongosh: command not found
 
 **Problem**: MongoDB Shell is not installed or not in PATH.
 
 **Solution**:
+
 ```bash
 # Install mongosh
 # Download from: https://www.mongodb.com/try/download/shell
@@ -402,11 +418,12 @@ sudo apt-get install mongodb-mongosh
 # Download installer from MongoDB website
 ```
 
-#### 2. Connection refused on port 27017
+#### 2\. Connection refused on port 27017
 
 **Problem**: MongoDB is not running.
 
 **Solution**:
+
 ```bash
 # Preferred: Use root docker-compose
 docker-compose up -d
@@ -419,11 +436,12 @@ mongod
 docker run -d -p 27017:27017 mongo:7
 ```
 
-#### 3. ModuleNotFoundError: No module named 'pymongo'
+#### 3\. ModuleNotFoundError: No module named 'pymongo'
 
 **Problem**: Python MongoDB driver not installed.
 
 **Solution**:
+
 ```bash
 pip install pymongo
 
@@ -432,33 +450,36 @@ cd labs/<lab-name>
 pip install -r requirements.txt
 ```
 
-#### 4. Authentication failed
+#### 4\. Authentication failed
 
 **Problem**: MongoDB requires authentication.
 
 **Solution**:
+
 ```bash
 # Include credentials in MONGO_URI
 export MONGO_URI=mongodb://username:password@localhost:27017/admin
 python scripts/lab.py all <lab-name>
 ```
 
-#### 5. Script fails with "No such file or directory"
+#### 5\. Script fails with "No such file or directory"
 
 **Problem**: Running from wrong directory.
 
 **Solution**:
+
 ```bash
 # Always run from repository root
 cd /path/to/mongo-db-labs
 python scripts/lab.py all <lab-name>
 ```
 
-#### 6. Timeout errors during simulation
+#### 6\. Timeout errors during simulation
 
 **Problem**: Large dataset generation takes too long.
 
 **Solution**:
+
 ```bash
 # Reduce simulation time
 python scripts/lab.py simulate <lab-name> --hours 1
@@ -467,11 +488,12 @@ python scripts/lab.py simulate <lab-name> --hours 1
 python labs/<lab-name>/02_simulate_*.py --hours 24
 ```
 
-#### 7. Docker: Port already in use
+#### 7\. Docker: Port already in use
 
 **Problem**: `bind: address already in use`
 
 **Solution**:
+
 ```bash
 # Option A: Stop conflicting service
 # Windows
@@ -487,11 +509,12 @@ services:
       - '27018:27017'" > docker-compose.override.yml
 ```
 
-#### 8. Docker: Container unhealthy
+#### 8\. Docker: Container unhealthy
 
 **Problem**: MongoDB container fails health checks.
 
 **Solution**:
+
 ```bash
 # Check logs
 docker logs mongodb-labs
@@ -504,11 +527,12 @@ docker-compose down -v
 docker-compose up -d
 ```
 
-#### 9. Docker: Authentication failed
+#### 9\. Docker: Authentication failed
 
 **Problem**: Cannot connect to Docker MongoDB.
 
 **Solution**:
+
 ```bash
 # Use correct credentials (from docker-compose.yml)
 export MONGO_URI=mongodb://labuser:labpassword@localhost:27017/
@@ -528,7 +552,7 @@ mongosh mongodb://localhost:27017 labs/iot_flood_demo/00_setup_mongodb.js
 python labs/iot_flood_demo/01_seed_flood_project.py --host localhost --port 27017
 ```
 
----
+--------------------------------------------------------------------------------
 
 ## Manual Execution
 
@@ -584,7 +608,7 @@ make queries
 make clean
 ```
 
----
+--------------------------------------------------------------------------------
 
 ## Best Practices
 
@@ -611,7 +635,7 @@ make clean
 4. **Make scripts idempotent** (safe to re-run)
 5. **Document any special requirements** in lab README
 
----
+--------------------------------------------------------------------------------
 
 ## Performance Tips
 
@@ -649,7 +673,7 @@ db.currentOp()  // View running operations
 db.stats()      // Database statistics
 ```
 
----
+--------------------------------------------------------------------------------
 
 ## Getting Help
 
@@ -678,8 +702,6 @@ python scripts/lab.py simulate --help
 - Validate lab structure first
 - Ensure all prerequisites are installed
 
----
+--------------------------------------------------------------------------------
 
-**Last Updated**: January 2024
-**Tool Version**: 1.0
-**Compatibility**: MongoDB 6.0+, Python 3.10+
+**Last Updated**: January 2024 **Tool Version**: 1.0 **Compatibility**: MongoDB 6.0+, Python 3.10+

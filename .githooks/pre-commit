@@ -1,0 +1,26 @@
+#!/bin/sh
+#
+# Pre-commit hook to check if lab index is up-to-date
+#
+
+# Check if Python is available
+if ! command -v python &> /dev/null; then
+    echo "Warning: Python not found, skipping index check"
+    exit 0
+fi
+
+# Check if lab indexes are up-to-date
+echo "Checking lab index..."
+python scripts/build_index.py --check
+
+if [ $? -ne 0 ]; then
+    echo ""
+    echo "Error: Lab index is outdated!"
+    echo "Please run: python scripts/build_index.py"
+    echo "Then add the updated files to your commit."
+    echo ""
+    exit 1
+fi
+
+echo "Lab index is up-to-date"
+exit 0

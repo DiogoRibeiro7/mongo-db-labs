@@ -1,0 +1,68 @@
+{
+  "name": "Soil Humidity LoRaWAN Monitoring",
+  "slug": "soil_humidity_lorawan",
+  "domain": "Agriculture IoT",
+  "difficulty": "intermediate",
+  "collections": [
+    "farms",
+    "fields",
+    "sensors",
+    "measurements",
+    "irrigationSchedules",
+    "alerts",
+    "cropTypes"
+  ],
+  "key_topics": [
+    "Agricultural IoT",
+    "LoRaWAN protocol",
+    "Soil moisture monitoring",
+    "Precision farming",
+    "Irrigation management",
+    "Time-series analytics"
+  ],
+  "sensors": [
+    "soil_moisture",
+    "soil_temperature",
+    "soil_pH",
+    "air_temperature",
+    "humidity"
+  ],
+  "features": {
+    "time_series": true,
+    "geospatial": true,
+    "schema_validation": true,
+    "lorawan_specific": true,
+    "irrigation_automation": true
+  },
+  "learning_outcomes": [
+    "Model agricultural domain with MongoDB",
+    "Handle LoRaWAN-specific IoT patterns",
+    "Implement precision irrigation strategies",
+    "Analyze soil conditions with time-series data",
+    "Create farm management dashboards"
+  ],
+  "prerequisites": [
+    "MongoDB 6.0+ (7.0+ recommended)",
+    "Basic understanding of agriculture",
+    "Familiarity with IoT sensors"
+  ],
+  "estimated_time": "2-3 hours",
+  "files": {
+    "setup": "00_setup_mongodb.js",
+    "seed": "01_seed_flood_project.py",
+    "simulate": "02_simulate_flood_project.py",
+    "queries": "03_queries_exam.js",
+    "validation": "04_bad_inserts.js"
+  },
+  "database": "lorawan_db",
+  "tags": [
+    "agriculture",
+    "iot",
+    "lorawan",
+    "time-series",
+    "precision-farming"
+  ],
+  "version": "1.0.0",
+  "author": "MongoDB Labs",
+  "last_updated": "2024-01-30"
+}

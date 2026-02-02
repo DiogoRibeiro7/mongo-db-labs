@@ -1,0 +1,19 @@
+# Testing dependencies for MongoDB Labs
+
+# Core testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
+pytest-timeout>=2.1.0
+pytest-env>=1.0.0
+
+# MongoDB driver (same as labs use)
+pymongo>=4.5.0
+
+# Code quality tools
+black>=23.0.0
+flake8>=6.0.0
+isort>=5.12.0
+
+# Optional: for better test output
+pytest-sugar>=0.9.7
+pytest-html>=3.2.0

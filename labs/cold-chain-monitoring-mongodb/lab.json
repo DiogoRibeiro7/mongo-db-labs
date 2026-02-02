@@ -1,0 +1,73 @@
+{
+  "name": "Cold Chain Monitoring System",
+  "slug": "cold-chain-monitoring-mongodb",
+  "domain": "Logistics & Supply Chain",
+  "difficulty": "intermediate",
+  "collections": [
+    "assets",
+    "sensors",
+    "measurements",
+    "events",
+    "routes",
+    "alerts"
+  ],
+  "key_topics": [
+    "Cold chain logistics",
+    "Temperature monitoring",
+    "Time-series data",
+    "Adaptive sampling",
+    "Asset tracking",
+    "Compliance monitoring",
+    "Real-time alerts"
+  ],
+  "sensors": [
+    "temperature",
+    "humidity",
+    "door_status",
+    "gps_location",
+    "battery_level",
+    "shock_vibration"
+  ],
+  "features": {
+    "time_series": true,
+    "geospatial": true,
+    "schema_validation": true,
+    "aggregation_pipelines": true,
+    "real_time_monitoring": true,
+    "adaptive_sampling": true
+  },
+  "learning_outcomes": [
+    "Design time-series collections for temperature monitoring",
+    "Implement cold chain compliance tracking",
+    "Build adaptive sampling for temperature deviations",
+    "Create geospatial queries for transport tracking",
+    "Analyze temperature excursions with aggregations",
+    "Generate compliance reports for auditing"
+  ],
+  "prerequisites": [
+    "MongoDB 6.0+ (7.0+ recommended for time-series)",
+    "Basic understanding of supply chain logistics",
+    "Familiarity with temperature monitoring concepts"
+  ],
+  "estimated_time": "2-3 hours",
+  "files": {
+    "setup": "00_setup_mongodb.js",
+    "seed": "01_seed_data.py",
+    "simulate": "02_simulate_telemetry.py",
+    "queries": "03_queries_exam.js",
+    "validation": "04_bad_inserts.js"
+  },
+  "database": "coldchain_db",
+  "tags": [
+    "logistics",
+    "cold-chain",
+    "temperature",
+    "iot",
+    "time-series",
+    "compliance",
+    "transport"
+  ],
+  "version": "1.0.0",
+  "author": "MongoDB Labs",
+  "last_updated": "2024-01-30"
+}

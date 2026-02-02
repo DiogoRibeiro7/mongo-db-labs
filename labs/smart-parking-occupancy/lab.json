@@ -1,0 +1,73 @@
+{
+  "name": "Smart Parking Occupancy System",
+  "slug": "smart-parking-occupancy",
+  "domain": "Smart City & IoT",
+  "difficulty": "intermediate",
+  "collections": [
+    "zones",
+    "parking_spots",
+    "sensors",
+    "occupancy_readings",
+    "events",
+    "violations"
+  ],
+  "key_topics": [
+    "Smart city infrastructure",
+    "Parking management",
+    "LoRa/magnetometer sensors",
+    "Occupancy detection",
+    "Violation tracking",
+    "Time-series analysis",
+    "Zone-based aggregation"
+  ],
+  "sensors": [
+    "magnetometer",
+    "ultrasonic",
+    "infrared",
+    "camera",
+    "lora_gateway"
+  ],
+  "features": {
+    "time_series": true,
+    "geospatial": true,
+    "schema_validation": true,
+    "aggregation_pipelines": true,
+    "real_time_monitoring": true,
+    "violation_detection": true
+  },
+  "learning_outcomes": [
+    "Design time-series collections for occupancy monitoring",
+    "Implement parking violation detection logic",
+    "Build zone-based occupancy analytics",
+    "Create confidence-based sensor readings",
+    "Analyze parking patterns and peak hours",
+    "Generate revenue and utilization reports"
+  ],
+  "prerequisites": [
+    "MongoDB 6.0+ (7.0+ recommended for time-series)",
+    "Basic understanding of IoT sensor networks",
+    "Familiarity with smart city concepts"
+  ],
+  "estimated_time": "2-3 hours",
+  "files": {
+    "setup": "00_setup_mongodb.js",
+    "seed": "01_seed_infrastructure.py",
+    "simulate": "02_simulate_occupancy.py",
+    "queries": "03_queries_exam.js",
+    "validation": "04_bad_inserts.js"
+  },
+  "database": "smartparking_db",
+  "tags": [
+    "smart-city",
+    "parking",
+    "iot",
+    "lora",
+    "magnetometer",
+    "time-series",
+    "occupancy",
+    "violations"
+  ],
+  "version": "1.0.0",
+  "author": "MongoDB Labs",
+  "last_updated": "2024-01-30"
+}
