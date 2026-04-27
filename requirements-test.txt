@@ -4,7 +4,7 @@
 pytest>=7.4.0
 pytest-cov>=4.1.0
 pytest-timeout>=2.1.0
-pytest-env>=1.0.0
+pytest-env>=1.6.0
 
 # MongoDB driver (same as labs use)
 pymongo>=4.5.0
